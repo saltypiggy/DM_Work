@@ -1,0 +1,72 @@
+import pandas as pd
+
+# file是你要拼表的源文件路径，save是你要保存的文件预设路径
+file = r"C:\Users\zhuliwei\Desktop\拼表案例.xlsx"
+save = r"C:\Users\zhuliwei\Desktop\拼表成功.xlsx"
+
+# 这块代码是读取名称为“CM2”的Sheet，读取的列分别对应EXCEL中的列：C,M,O,V,W,X,以及AA到AH的连续区间，生成数据框，数据框叫做“cm2”
+cm2 = pd.read_excel(file, sheet_name='CM2', usecols='c,m,o,v,w,x,aa:ah')
+
+# 上一句我们获得了数据框“cm2”，这句是从cm2中筛选“给药目的(CMINDC2)”为“不良事件”的部分
+cm2 = cm2.loc[cm2['给药目的(CMINDC2)'] == '不良事件']
+
+# 这块代码是读取名称为“AE”的Sheet，读取的列分别对应EXCEL中的列：C,M,O,AD,AF,AG列，生成数据框，数据框叫做“cm2”，dtype语句的作用初学可以忽略）
+ae = pd.read_excel(file, sheet_name='AE', usecols='c,m,o,ad,af,ag', dtype={'开始日期（年/月/日）(AESTDAT)': str, '结束日期（年/月/日）(AEENDAT)': str})
+
+# 此代码从数据框cm2中获得所有受试者的编号，保存在列表中，列表名称为cm2_names
+cm2_names = sorted(set(cm2['SubjectNo']))
+
+# 生成一个空数据框，后面会用来拼接以及保存最终数据
+res = pd.DataFrame()
+
+# 这个语句是循环语句，循环列表cm2_names中的每个名字，我们起名name，也可以是for zlw in cm2_names:   总之是自定义的
+for name in cm2_names:
+
+    # 循环内的语句要有缩进，比如下面的语句都是这个循环内的，因此向右缩进了一个制表符（键盘上的Tab）
+    # 从数据框cm2中筛选获得“SubjectNo”列为对应名称name（比如我循环到01-003）的子部分，reset_index(drop=True)为重置索引，可以先忽略他的作用，筛选完后，我们将数据保存在数据框part_cm2
+    part_cm2 = cm2.loc[cm2['SubjectNo'] == name].reset_index(drop=True)
+
+    # 同上，同理
+    part_ae = ae.loc[ae['SubjectNo'] == name].reset_index(drop=True)
+
+    # 这部分可先忽略作用，其实就是删除part_ae的“SubjectNo”列
+    part_ae.drop(columns=['SubjectNo'], inplace=True)
+
+    # 将part_cm2和part_ae横向拼接起来，保存在数据框step中（比如我把01-003的CM2和AE，一左一右拼接在了一起）
+    step = pd.concat([part_cm2, part_ae], axis=1)
+
+    # 回到我们之前生成的空数据框res，我们将res和上一步的step纵向拼接，随着循环的进行，01-001到01-004的部分会逐个自上而下拼接
+    res = pd.concat([res, step])
+
+# 下面这几行循环的代码不理解也没事，可忽略
+# res.shape[0]就是res这个数据框或者表的总行数，这里我们循环res表（数据框）的每一行
+for row in range(res.shape[0]):
+
+    # if就是“如果”的意思，str(内容)就是把内容转换为文本字符形式，res.iloc[row, 0]就是我当前循环的行的第一列单元格内容，=='nan'就是等于空白的意思，因此整个语句就是“如果当前行第一列定位的单元格缺失”
+    if str(res.iloc[row, 0]) == 'nan':
+
+        # 那么这个单元格复制上一个单元格的信息
+        res.iloc[row, 0] = res.iloc[row-1, 0]
+
+# 以下函数部分不理解也没事，可忽略
+# def就是创建自定义函数，函数名为clean_date，参数为括号内的string，当然也可以为def clean_date(zlw)
+def clean_date(string):
+
+    # 如果参数string的文本字符形式为缺失
+    if str(string) == 'nan':
+
+        # 不做任何处理，即pass
+        pass
+
+    # 否则
+    else:
+
+        # 将string中的' 00:00:00'部分去除掉（替换为空白）
+        return str(string).replace(' 00:00:00', '')
+
+# 将clean_date函数运用到对应列中，去除' 00:00:00'
+res['开始日期（年/月/日）(AESTDAT)'] = res['开始日期（年/月/日）(AESTDAT)'].map(clean_date)
+res['结束日期（年/月/日）(AEENDAT)'] = res['结束日期（年/月/日）(AEENDAT)'].map(clean_date)
+
+# 将最终结果数据框（表）res导出，保存在save路径（开头以及设置好），Sheet名称为“CM2拼AE”，索引不可见（index=False）
+res.to_excel(save, sheet_name='CM2拼AE', index=False)
