@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import datetime
-file = r"C:\Users\zhuliwei\Desktop\MLWY-SXX201601_FormExcel_2.2_20220907 to 申办方.xlsx"  ##################
-save = r"C:\Users\zhuliwei\Desktop\RES.xlsx"  ########
+file = r"C:\Users\somebody\Desktop\dateform.xlsx"  ##################
+save = r"C:\Users\somebody\Desktop\RES.xlsx"  ########
 # sv1a = pd.read_excel(file, sheet_name='SV1A', usecols=['受试者编号', '数据节', '数据页', '访视日期(SVDAT1)'], keep_default_na=False)  ##################
 # sv1b = pd.read_excel(file, sheet_name='SV1', usecols=['受试者编号', '数据节', '数据页', '访视日期(SVDAT1)'], keep_default_na=False)  ##################
 # sv = pd.concat([sv1a, sv1b])
