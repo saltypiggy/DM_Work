@@ -1,7 +1,7 @@
 from 隐藏字段 import hide
 import pandas as pd
 
-df = pd.read_excel(r"C:\Users\zhuliwei\Desktop\隐藏.xlsx", sheet_name='Sheet1')
+df = pd.read_excel(r"C:\Users\somebody\Desktop\隐藏.xlsx", sheet_name='Sheet1')
 save = r"C:\Users\zhuliwei\Desktop\RES.xlsx"
 
 forms = list(set(df['FormOID']))
